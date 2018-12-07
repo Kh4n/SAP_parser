@@ -1,5 +1,6 @@
 def convert(e)
     precedences = {
+        "!" => 4,
         "^" => 4,
         "/" => 3,
         "*" => 2,
@@ -10,11 +11,12 @@ def convert(e)
     }
     precedences.default = 5
     operators = /(\^|\*|\/|\+|\-|\=)/
-    constvar = /([+-]?\d+|pi|[a-z]|[A-Z])/
+    postfixoperators = /!/
+    constvar = /([+-]?\d+\.?(\d+)?|pi|[a-z]|[A-Z])/
     functions = /ln|log|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|arcsec|arccsc|arccot|sqrt/
     e.tr!(" ", "")
     e.gsub!(/π/, "pi")
-    input = e.split(/(\/|\*|\^|\(|\)|\+|\-|ln|log|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|arcsec|arccsc|arccot|sqrt|pi|\d+|[a-z]|[A-Z])/).reject{|x| x == ""}
+    input = e.scan(/(\/|\*|\^|\(|\)|\+|\-|=|!|ln|log|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|arcsec|arccsc|arccot|sqrt|pi|\d+\.?(\d+)?|[a-z]|[A-Z])/).map{|x| x[0]}
     stack = []
     output = []
     #return input
@@ -62,6 +64,8 @@ def convert(e)
                 output << stack.pop
             end
             stack << curr
+        elsif curr.match?(postfixoperators)
+            output << curr
         else
             raise "invalid input"
         end
@@ -74,14 +78,14 @@ def convert(e)
     while output.length != 0
         a = output.pop
         if a == "/"
-            divisor = stack.pop.chomp(")").reverse.chomp("(").reverse
-            dividend = stack.pop.chomp(")").reverse.chomp("(").reverse
+            divisor = stack.pop#.chomp(")").reverse.chomp("(").reverse
+            dividend = stack.pop#.chomp(")").reverse.chomp("(").reverse
             stack << "@DIV{#{dividend};#{divisor}}"
         elsif a == "^"
             exp = stack.pop
             base = stack.pop
             if exp[0..6].match?(functions)
-                stack << exp.insert(exp.index('n')+1, "@Sup{#{base}}")
+                stack << exp.insert(exp[0..6].match(functions)[0].length, "@Sup{#{base}}")
             else
                 exp.chomp(")").reverse.chomp("(").reverse
                 stack << "#{base}@Sup{#{exp}}"
@@ -100,6 +104,8 @@ def convert(e)
             end
         elsif a == "()"
             stack << "(#{stack.pop})"
+        elsif a.match?(postfixoperators)
+            stack << "#{stack.pop}#{a}"
         elsif a.match?(operators) && a.length == 1
             elemr = stack.pop
             eleml = stack.pop
@@ -115,6 +121,6 @@ input = "34/5*3+2pi^4"
 input2 = "34/(-5*3)+2pi^4"
 inputhard1 = "34/(5 * 3)+ 2pi^3*4xsqrt(m)/y"
 inputhard2 = "34/(5 * 3)+ 2pi^3*4xtan^-1(m)/y"
-inputhard3 = "(π log(pi/(2 n)))/n = 2 - π^2/(6 n^2) + ln^-3((1/n)^4)"
+inputhard3 = "(π log(pi/(2.3 n)))/n = 2.12341 - π^2/(6 n^22.2) + ln^-0.3((1/n)^4)/cot(csc^-1(8pi/2))!"
 
 puts convert inputhard3
