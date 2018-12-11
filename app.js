@@ -9,16 +9,20 @@ function convert(str) {
         "+" : 2,
         "-" : 2,
         "=" : 1,
+        "<" : 1,
+        ">" : 1,
+        "<=": 1,
         "(" : -1,
     }; //default is 6
     const DEF = 6;
-    var operators = /(\^|\*|\/|\+|\-|=)/g;
+    var operators = /(\^|\*|\/|\+|\-|&le;|&ge;|<|>|=)/g;
     var postfixoperators = /!/g;
     var constvar = /([+-]?\d+\.?(\d+)?|&theta;|&pi;|[a-z]|[A-Z])/g;
     var functions = /ln|log|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|arcsec|arccsc|arccot|sqrt/g;
-    str = str.replace(" ", "");
+    str = str.replace(/ /g, "");
     str = str.replace(/pi/gi, "&pi;").replace(/theta/g, "&theta;").replace(/π/g, "&pi;").replace(/θ/g, "&theta;");
-    var input = str.match(/(\/|\*|\^|\(|\)|\+|\-|=|!|ln|log|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|arcsec|arccsc|arccot|sqrt|&theta;|&pi;|\d+\.?(\d+)?|[a-z]|[A-Z])/g);
+    str = str.replace(/<=/g, "&le;").replace(/>=/g, "&ge;");
+    var input = str.match(/(\/|\*|\^|\(|\)|\+|\-|&le;|&ge;|<|>|=|!|ln|log|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|arcsec|arccsc|arccot|sqrt|&theta;|&pi;|\d+\.?(\d+)?|[a-z]|[A-Z])/g);
     var stack = [];
     var output = [];
     var tmpstack = [];
@@ -74,7 +78,7 @@ function convert(str) {
         else if ( curr === "^" && stack.slice(-1)[0] && stack.slice(-1)[0].match(functions) ) {
             stack.push(curr + "^");
         }
-        else if ( curr.match(operators) && curr.length === 1 ) {
+        else if ( curr.match(operators) && curr.length <= 2 ) {
             while ( stack.length !== 0 && ((precedences[curr] || DEF) <= (precedences[stack.slice(-1)[0]] || DEF)) ) {
                 output.push(stack.pop());
             }
@@ -129,7 +133,10 @@ function convert(str) {
         else if ( a.match(postfixoperators) ) {
             stack.push(`${stack.pop()}${a}`);
         }
-        else if ( a.match(operators) && a.length === 1) {
+        else if ( a.match(constvar) ) {
+            stack.push(a);
+        }
+        else if ( a.match(operators) && a.length <= 2) {
             var elemr = stack.pop();
             var eleml = stack.pop();
             stack.push(`${eleml}${a}${elemr}`);
@@ -145,6 +152,6 @@ var input = "34/5*3+2pi^4";
 var input2 = "34/(-5*3)+2pi^4";
 var inputhard1 = "34/(5 * 3)+ 2pi^3*4xsqrt(m)/y";
 var inputhard2 = "34/(5 * 3)+ 2pi^3*4xtan^-1(m)/y";
-var inputhard3 = "(π log(pi/(2.3 n)))/n^(arccsc^2(2θ/2^2)) = 2.12341 - π^2/(6 n^22.2) + ln^-0.3((1/n)^4)/cot(csc^-1(8pi/2))!";
+var inputhard3 = "(π log(pi/(2.3 n)))/n^(arccsc^2(2θ/2^2)) = 2.12341 >= 4 - π^2/(6 n^22.2) + ln^-0.3((1/n)^4)/cot(csc^-1(8pi/2))!";
 
 console.log(convert(inputhard3));
