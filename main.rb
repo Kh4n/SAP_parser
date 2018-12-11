@@ -12,11 +12,14 @@ def convert(e)
     precedences.default = 5
     operators = /(\^|\*|\/|\+|\-|\=)/
     postfixoperators = /!/
-    constvar = /([+-]?\d+\.?(\d+)?|pi|[a-z]|[A-Z])/
+    constvar = /([+-]?\d+\.?(\d+)?|&theta;|&pi;|[a-z]|[A-Z])/
     functions = /ln|log|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|arcsec|arccsc|arccot|sqrt/
     e.tr!(" ", "")
-    e.gsub!(/π/, "pi")
-    input = e.scan(/(\/|\*|\^|\(|\)|\+|\-|=|!|ln|log|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|arcsec|arccsc|arccot|sqrt|pi|\d+\.?(\d+)?|[a-z]|[A-Z])/).map{|x| x[0]}
+    e.gsub!(/pi|PI/, "&pi;")
+    e.gsub!(/theta/, "&theta;")
+    e.gsub!(/π/, "&pi;")
+    e.gsub!(/θ/, "&theta;")
+    input = e.scan(/(\/|\*|\^|\(|\)|\+|\-|=|!|ln|log|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|arcsec|arccsc|arccot|sqrt|&theta;|&pi;|\d+\.?(\d+)?|[a-z]|[A-Z])/).map{|x| x[0]}
     stack = []
     output = []
     #return input
@@ -26,7 +29,7 @@ def convert(e)
         if (a.match?(constvar) || a == "(") && ((input.last.match?(constvar) && !input.last.match?(functions)) || input.last == ")")
             tmpstack << a
             tmpstack << "*"
-        elsif a == "-" && (input.last.match(operators) || input.last == "(")
+        elsif a == "-" && (input.last.match?(operators) || input.last == "(")
             tmpstack << (a + tmpstack.pop)
         elsif a == "^" && input.last.match?(functions)
             tmpstack.delete_at(-2)
@@ -87,7 +90,7 @@ def convert(e)
             if exp[0..6].match?(functions)
                 stack << exp.insert(exp[0..6].match(functions)[0].length, "@Sup{#{base}}")
             else
-                exp.chomp(")").reverse.chomp("(").reverse
+                #exp.chomp(")").reverse.chomp("(").reverse
                 stack << "#{base}@Sup{#{exp}}"
             end
         elsif a == "sqrt"
@@ -114,13 +117,13 @@ def convert(e)
             stack << a
         end
     end
-    return stack[0].gsub(/pi|PI/, "&pi;")
+    return stack[0]
 end
 
 input = "34/5*3+2pi^4"
 input2 = "34/(-5*3)+2pi^4"
-inputhard1 = "34/(5 * 3)+ 2pi^3*4xsqrt(m)/y"
+inputhard1 = "34/(5 * 3)+ 2pi^3*4xsqrt(m+3x+2)/y"
 inputhard2 = "34/(5 * 3)+ 2pi^3*4xtan^-1(m)/y"
-inputhard3 = "(π log(pi/(2.3 n)))/n = 2.12341 - π^2/(6 n^22.2) + ln^-0.3((1/n)^4)/cot(csc^-1(8pi/2))!"
+inputhard3 = "(π log(pi/(2.3 n)))/n^(2θ/2^2) = 2.12341 - π^2/(6 n^22.2) + ln^-0.3((1/n)^4)/cot(csc^-1(8pi/2))!"
 
 puts convert inputhard3
