@@ -61,7 +61,7 @@ function convert(str) {
                 }
             }
             output.push("()");
-            if ( stack.slice(-1)[0] && stack.slice(-2)[0] && stack.slice(-1)[0] === "^" && stack.slice(-2)[0].match(functions) ) {
+            if ( stack.slice(-1)[0] && stack.slice(-2)[0] && stack.slice(-1)[0] === "^^" ) {
                 var exp = stack.pop();
                 var func = stack.pop();
                 output.push(func);
@@ -72,7 +72,7 @@ function convert(str) {
             output.push(curr);
         }
         else if ( curr === "^" && stack.slice(-1)[0] && stack.slice(-1)[0].match(functions) ) {
-            stack.push(curr);
+            stack.push(curr + "^");
         }
         else if ( curr.match(operators) && curr.length === 1 ) {
             while ( stack.length !== 0 && ((precedences[curr] || DEF) <= (precedences[stack.slice(-1)[0]] || DEF)) ) {
@@ -102,10 +102,12 @@ function convert(str) {
         else if ( a === "^" ) {
             var exp = stack.pop();
             var base = stack.pop();
-            if ( exp.substr(0,6).match(functions) )
-                stack.push(exp.slice(0, exp.match(functions)[0].length) + `@Sup{${base}}` + exp.slice(exp.match(functions)[0].length));
-            else
-                stack.push(`${base}@Sup{${exp}}`);
+            stack.push(`${base}@Sup{${exp}}`);
+        }
+        else if ( a === "^^") {
+            var exp = stack.pop();
+            var base = stack.pop();
+            stack.push(exp.slice(0, exp.match(functions)[0].length) + `@Sup{${base}}` + exp.slice(exp.match(functions)[0].length));
         }
         else if ( a === "sqrt" ) {
             stack.push(`@RT{${stack.pop().slice(1, -1)}}`);
@@ -143,6 +145,6 @@ var input = "34/5*3+2pi^4";
 var input2 = "34/(-5*3)+2pi^4";
 var inputhard1 = "34/(5 * 3)+ 2pi^3*4xsqrt(m)/y";
 var inputhard2 = "34/(5 * 3)+ 2pi^3*4xtan^-1(m)/y";
-var inputhard3 = "(π log(pi/(2.3 n)))/n^(2θ/2^2) = 2.12341 - π^2/(6 n^22.2) + ln^-0.3((1/n)^4)/cot(csc^-1(8pi/2))!";
+var inputhard3 = "(π log(pi/(2.3 n)))/n^(arccsc^2(2θ/2^2)) = 2.12341 - π^2/(6 n^22.2) + ln^-0.3((1/n)^4)/cot(csc^-1(8pi/2))!";
 
 console.log(convert(inputhard3));
