@@ -29,7 +29,7 @@ function convert(str) {
 
     while (input.length != 1) {
         var a = input.pop();
-        if ( (a.match(constvar) || a === "(") && ((input.slice(-1)[0].match(constvar) && !input.slice(-1)[0].match(functions)) || input.last === ")") ) {
+        if ( (a.match(constvar) || a === "(") && ((input.slice(-1)[0].match(constvar) && !input.slice(-1)[0].match(functions)) || input.slice(-1)[0] === ")") ) {
             tmpstack.push(a);
             tmpstack.push("*");
         }
@@ -154,4 +154,4 @@ var inputhard1 = "34/(5 * 3)+ 2pi^3*4xsqrt(m)/y";
 var inputhard2 = "34/(5 * 3)+ 2pi^3*4xtan^-1(m)/y";
 var inputhard3 = "(π log(pi/(2.3 n)))/n^(arccsc^2(2θ/2^2)) = 2.12341 >= 4 - π^2/(6 n^22.2) + ln^-0.3((1/n)^4)/cot(csc^-1(8pi/2))!";
 
-console.log(convert(inputhard3));
+console.log(convert("y = (7 sqrt(3) x)/2 - 13 sqrt(3)"));
